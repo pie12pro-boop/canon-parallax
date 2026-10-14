@@ -1,30 +1,24 @@
 
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
   <meta charset="UTF-8">
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1"
-  >
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>FlyGarden | Parallax Universal</title>
+  <title>FlyGarden | Product Parallax</title>
 
   <style>
     * {
       box-sizing: border-box;
     }
 
-    html,
-    body {
+    html, body {
       margin: 0;
       padding: 0;
       width: 100%;
       height: 100%;
       overflow: hidden;
       background: #101010;
-      font-family: Arial, sans-serif;
     }
 
     #camera {
@@ -39,7 +33,7 @@
       left: 50%;
       transform: translateX(-50%);
       color: white;
-      font-size: 12px;
+      font: 12px Arial, sans-serif;
       text-align: center;
       z-index: 10;
       pointer-events: none;
@@ -57,7 +51,6 @@
       padding: 15px 20px;
       border-radius: 15px;
       background: rgba(20, 20, 20, 0.8);
-      backdrop-filter: blur(12px);
       z-index: 20;
     }
 
@@ -69,7 +62,7 @@
 
     #contador {
       color: white;
-      font-size: 12px;
+      font: 12px Arial, sans-serif;
       white-space: nowrap;
     }
   </style>
@@ -79,9 +72,7 @@
 
   <canvas id="camera"></canvas>
 
-  <div id="status">
-    Carregando imagens...
-  </div>
+  <div id="status">Carregando imagens...</div>
 
   <div id="controles">
     <input
@@ -93,8 +84,7 @@
       step="1"
       aria-label="Controlar animação"
     >
-
-    <span id="contador">1 / 100</span>
+    <span id="contador">1 / 50</span>
   </div>
 
   <script>
@@ -104,13 +94,12 @@
     // =====================================
 
     const PRODUCTS = {
-
       canon: {
         folder: "R5MKII",
         prefix: "Imagem-",
-        count: 100,
+        count: 50,
         ext: "webp",
-        reverse: false
+        reverse: true
       },
 
       drone: {
@@ -120,11 +109,10 @@
         ext: "webp",
         reverse: true
       }
-
     };
 
     // =====================================
-    // IDENTIFICAR PRODUTO PELA URL
+    // SELEÇÃO DO PRODUTO
     // =====================================
 
     const params = new URLSearchParams(
@@ -180,20 +168,15 @@
 
     let lastRenderedFrame = -1;
 
-    // =====================================
-    // ATIVAR MODO TESTE
-    // =====================================
-
     if (TEST_MODE) {
       controles.style.display = "flex";
     }
 
     // =====================================
-    // CAMINHO DOS ARQUIVOS
+    // CAMINHO DAS IMAGENS
     // =====================================
 
     function getFramePath(number) {
-
       const filename =
         `${product.prefix}${number}.${product.ext}`;
 
@@ -205,11 +188,10 @@
       }
 
       return `${product.folder}/${filename}`;
-
     }
 
     // =====================================
-    // CONVERTER PROGRESSO EM FRAME
+    // PROGRESSO DA ANIMAÇÃO
     // =====================================
 
     function setProgress(value) {
@@ -219,8 +201,9 @@
         Math.min(1, Number(value) || 0)
       );
 
-      // Drone: ida e volta
-      // Canon: reprodução normal
+      // 0%   = frame 1
+      // 50%  = frame 50
+      // 100% = frame 1
 
       const playbackProgress = product.reverse
         ? 1 - Math.abs(2 * progress - 1)
@@ -228,37 +211,27 @@
 
       targetFrame =
         playbackProgress * (TOTAL_FRAMES - 1);
-
     }
 
     // =====================================
-    // CARREGAR IMAGENS
+    // CARREGAMENTO DAS IMAGENS
     // =====================================
 
     function loadFrames() {
 
-      for (
-        let i = 1;
-        i <= TOTAL_FRAMES;
-        i++
-      ) {
+      for (let i = 1; i <= TOTAL_FRAMES; i++) {
 
         const img = new Image();
 
         frames[i - 1] = img;
 
         img.onload = () => {
-
           loadedFrames++;
-
           updateStatus();
-
           lastRenderedFrame = -1;
-
         };
 
         img.onerror = () => {
-
           failedFrames++;
 
           console.error(
@@ -267,17 +240,14 @@
           );
 
           updateStatus();
-
         };
 
         img.src = getFramePath(i);
-
       }
-
     }
 
     // =====================================
-    // STATUS DE CARREGAMENTO
+    // STATUS
     // =====================================
 
     function updateStatus() {
@@ -287,16 +257,10 @@
 
       if (processed === TOTAL_FRAMES) {
 
-        if (failedFrames === 0) {
-
-          status.textContent = "";
-
-        } else {
-
-          status.textContent =
-            `${failedFrames} imagem(ns) não carregada(s)`;
-
-        }
+        status.textContent =
+          failedFrames === 0
+            ? ""
+            : `${failedFrames} imagem(ns) não carregada(s)`;
 
       } else {
 
@@ -304,11 +268,10 @@
           `Carregando ${processed} / ${TOTAL_FRAMES}`;
 
       }
-
     }
 
     // =====================================
-    // DIMENSIONAR CANVAS
+    // DIMENSIONAMENTO
     // =====================================
 
     function resizeCanvas() {
@@ -336,13 +299,11 @@
         canvas.height = pixelHeight;
 
         lastRenderedFrame = -1;
-
       }
-
     }
 
     // =====================================
-    // DESENHAR FRAME
+    // RENDERIZAÇÃO
     // =====================================
 
     function render() {
@@ -391,16 +352,16 @@
         0, 0, width, height
       );
 
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+
       const scale = Math.min(
         width / img.naturalWidth,
         height / img.naturalHeight
       );
 
-      const w =
-        img.naturalWidth * scale;
-
-      const h =
-        img.naturalHeight * scale;
+      const w = img.naturalWidth * scale;
+      const h = img.naturalHeight * scale;
 
       ctx.drawImage(
         img,
@@ -414,11 +375,10 @@
 
       contador.textContent =
         `${index + 1} / ${TOTAL_FRAMES}`;
-
     }
 
     // =====================================
-    // ANIMAÇÃO SUAVE
+    // MOVIMENTO SUAVE
     // =====================================
 
     function animate() {
@@ -427,92 +387,66 @@
         (targetFrame - currentFrame) * 0.18;
 
       if (
-        Math.abs(
-          targetFrame - currentFrame
-        ) < 0.05
+        Math.abs(targetFrame - currentFrame) < 0.05
       ) {
-
         currentFrame = targetFrame;
-
       }
 
       render();
 
       requestAnimationFrame(animate);
-
     }
 
     // =====================================
-    // BARRA DE TESTE
+    // CONTROLE MANUAL DE TESTE
     // =====================================
 
-    slider.addEventListener(
-      "input",
-      function () {
+    slider.addEventListener("input", function () {
+      setProgress(Number(this.value) / 100);
+    });
 
-        const progress =
-          Number(this.value) / 100;
+    // =====================================
+    // RECEBER SCROLL DO WIX STUDIO
+    // =====================================
 
-        setProgress(progress);
+    window.addEventListener("message", (event) => {
 
+      if (
+        event.data?.type !==
+        "PARALLAX_PROGRESS"
+      ) {
+        return;
       }
-    );
 
-    // =====================================
-    // CONTROLE PELO WIX STUDIO
-    // =====================================
+      const progress =
+        Number(event.data.progress);
 
-    window.addEventListener(
-      "message",
-      (event) => {
-
-        if (
-          event.data?.type ===
-          "PARALLAX_PROGRESS"
-        ) {
-
-          const value =
-            Number(event.data.progress);
-
-          if (!Number.isFinite(value)) {
-            return;
-          }
-
-          const progress = Math.max(
-            0,
-            Math.min(1, value)
-          );
-
-          setProgress(progress);
-
-          slider.value =
-            Math.round(progress * 100);
-
-        }
-
+      if (!Number.isFinite(progress)) {
+        return;
       }
-    );
+
+      setProgress(progress);
+
+      slider.value =
+        Math.round(
+          Math.max(0, Math.min(1, progress)) * 100
+        );
+    });
 
     // =====================================
     // REDIMENSIONAMENTO
     // =====================================
 
-    window.addEventListener(
-      "resize",
-      () => {
-
-        lastRenderedFrame = -1;
-        render();
-
-      }
-    );
+    window.addEventListener("resize", () => {
+      lastRenderedFrame = -1;
+      render();
+    });
 
     // =====================================
     // INICIAR
     // =====================================
 
     loadFrames();
-
     animate();
 
   </script>
