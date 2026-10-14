@@ -6,7 +6,33 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
   * { box-sizing: border-box; }
-  html, body {
+ 
+<style>
+  #testeScroll {
+    position: fixed;
+    bottom: 25px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(80%, 500px);
+    z-index: 999;
+  }
+</style>
+
+<input
+  id="testeScroll"
+  type="range"
+  min="0"
+  max="99"
+  value="0"
+/>
+
+<script>
+  document.getElementById("testeScroll")
+    .addEventListener("input", function () {
+      targetFrame = Number(this.value);
+    });
+</script>
+ html, body {
     margin: 0;
     width: 100%;
     height: 100%;
