@@ -24,9 +24,6 @@
       height: 100%;
       overflow: hidden;
       background: #101010;
-    }
-
-    body {
       font-family: Arial, sans-serif;
     }
 
@@ -41,7 +38,7 @@
       top: 20px;
       left: 50%;
       transform: translateX(-50%);
-      color: #ffffff;
+      color: white;
       font-size: 12px;
       text-align: center;
       z-index: 10;
@@ -53,7 +50,7 @@
       bottom: 25px;
       left: 50%;
       transform: translateX(-50%);
-      width: min(80%, 500px);
+      width: min(85%, 520px);
       display: none;
       align-items: center;
       gap: 15px;
@@ -91,7 +88,7 @@
       id="testeScroll"
       type="range"
       min="0"
-      max="99"
+      max="100"
       value="0"
       step="1"
       aria-label="Controlar animação"
@@ -112,14 +109,16 @@
         folder: "R5MKII",
         prefix: "Imagem-",
         count: 100,
-        ext: "webp"
+        ext: "webp",
+        reverse: false
       },
 
       drone: {
         folder: "drone",
         prefix: "IMG360_",
-        count: 100,
-        ext: "webp"
+        count: 50,
+        ext: "webp",
+        reverse: true
       }
 
     };
@@ -189,13 +188,8 @@
       controles.style.display = "flex";
     }
 
-    slider.max = TOTAL_FRAMES - 1;
-
-    contador.textContent =
-      `1 / ${TOTAL_FRAMES}`;
-
     // =====================================
-    // CAMINHO DAS IMAGENS
+    // CAMINHO DOS ARQUIVOS
     // =====================================
 
     function getFramePath(number) {
@@ -203,14 +197,42 @@
       const filename =
         `${product.prefix}${number}.${product.ext}`;
 
-      return (
-        `${product.folder}/${filename}`
-      );
+      if (
+        product.folder === "." ||
+        product.folder === ""
+      ) {
+        return filename;
+      }
+
+      return `${product.folder}/${filename}`;
 
     }
 
     // =====================================
-    // CARREGAR OS FRAMES
+    // CONVERTER PROGRESSO EM FRAME
+    // =====================================
+
+    function setProgress(value) {
+
+      const progress = Math.max(
+        0,
+        Math.min(1, Number(value) || 0)
+      );
+
+      // Drone: ida e volta
+      // Canon: reprodução normal
+
+      const playbackProgress = product.reverse
+        ? 1 - Math.abs(2 * progress - 1)
+        : progress;
+
+      targetFrame =
+        playbackProgress * (TOTAL_FRAMES - 1);
+
+    }
+
+    // =====================================
+    // CARREGAR IMAGENS
     // =====================================
 
     function loadFrames() {
@@ -231,9 +253,7 @@
 
           updateStatus();
 
-          if (i === 1) {
-            render();
-          }
+          lastRenderedFrame = -1;
 
         };
 
@@ -242,7 +262,7 @@
           failedFrames++;
 
           console.error(
-            "Erro ao carregar imagem:",
+            "Erro ao carregar:",
             getFramePath(i)
           );
 
@@ -288,7 +308,7 @@
     }
 
     // =====================================
-    // AJUSTAR CANVAS
+    // DIMENSIONAR CANVAS
     // =====================================
 
     function resizeCanvas() {
@@ -322,7 +342,7 @@
     }
 
     // =====================================
-    // DESENHAR IMAGEM
+    // DESENHAR FRAME
     // =====================================
 
     function render() {
@@ -423,15 +443,17 @@
     }
 
     // =====================================
-    // CONTROLE MANUAL
+    // BARRA DE TESTE
     // =====================================
 
     slider.addEventListener(
       "input",
       function () {
 
-        targetFrame =
-          Number(this.value);
+        const progress =
+          Number(this.value) / 100;
+
+        setProgress(progress);
 
       }
     );
@@ -461,11 +483,10 @@
             Math.min(1, value)
           );
 
-          targetFrame =
-            progress * (TOTAL_FRAMES - 1);
+          setProgress(progress);
 
           slider.value =
-            Math.round(targetFrame);
+            Math.round(progress * 100);
 
         }
 
@@ -487,7 +508,7 @@
     );
 
     // =====================================
-    // INICIAR SISTEMA
+    // INICIAR
     // =====================================
 
     loadFrames();
